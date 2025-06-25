@@ -1,3 +1,64 @@
+use crate::Error;
+use std::fmt::{Display, Formatter, write};
+use std::str::FromStr;
+
+#[derive(Debug, Eq, PartialEq)]
+pub struct ChunkType {
+    bytes: [u8; 4],
+}
+
+impl ChunkType {
+    fn bytes(&self) -> [u8; 4] {
+        self.bytes
+    }
+    fn is_valid(&self) -> bool {
+        true
+    }
+    fn is_critical(&self) -> bool {
+        self.bytes[0].is_ascii_uppercase()
+    }
+    fn is_public(&self) -> bool {
+        self.bytes[1].is_ascii_uppercase()
+    }
+    fn is_reserved_bit_valid(&self) -> bool {
+        self.bytes[2].is_ascii_uppercase()
+    }
+    fn is_safe_to_copy(&self) -> bool {
+        self.bytes[3].is_ascii_lowercase()
+    }
+}
+
+impl TryFrom<[u8; 4]> for ChunkType {
+    type Error = ();
+    fn try_from(value: [u8; 4]) -> Result<Self, Self::Error> {
+        Ok(ChunkType { bytes: value })
+    }
+}
+
+impl FromStr for ChunkType {
+    type Err = ();
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        if s.chars().any(|val| val.is_numeric()) {
+            Err(Error::from("Numeric value not allowed"))
+        } else {
+            Ok(ChunkType {
+                bytes: s.as_bytes().try_into().unwrap(),
+            })
+        }
+    }
+}
+
+impl Display for ChunkType {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write(
+            f,
+            "{}",
+            String::from_utf8(self.bytes.try_into().unwrap()).unwrap(),
+        )
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

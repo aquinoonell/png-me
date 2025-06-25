@@ -39,13 +39,13 @@ impl FromStr for ChunkType {
     type Err = ();
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        if s.chars().any(|val| val.is_numeric()) {
-            Err(Error::from("Numeric value not allowed"))
+        return if s.chars().any(|val| val.is_numeric()) {
+            Err(())
         } else {
             Ok(ChunkType {
                 bytes: s.as_bytes().try_into().unwrap(),
             })
-        }
+        };
     }
 }
 

@@ -1,51 +1,51 @@
-use crate::chunk_type::{self, ChunkType};
 use crate::Error;
+use crate::chunk_type::ChunkType;
 use std::fmt::{Display, Formatter};
+use std::str::FromStr;
 
 pub struct Chunk {
     bytes: [u8; 4],
-    
 }
 
 impl Chunk {
-    fn new(chunk_type: ChunkType, data: Vec<u8>) -> Chunk {
-        chunk_type.into()
-    }
+    fn new(chunk_type: ChunkType, data: Vec<u8>) -> Chunk {}
 
-    fn length(&self) -> u32{
+    fn length(&self) -> u32 {
         self.length()
     }
     fn chunk_type(&self) -> &ChunkType {
         self.chunk_type()
     }
-    fn data(&self) -> &[u8]{
+    fn data(&self) -> &[u8] {
         self.data()
     }
-    fn crc(&self) -> u32{
+    fn crc(&self) -> u32 {
         self.crc()
     }
-    fn data_as_string(&self) -> Result<String>{
+    fn data_as_string(&self) -> Result<String> {
         self.data_as_string()
     }
-    fn as_bytes(&self) -> Vec<u8>{
+    fn as_bytes(&self) -> Vec<u8> {
         self.as_bytes()
     }
-
 }
 
-impl TryFrom <&[u8]> for Chunk {
-  type Error = ();
-    fn try_from(value: []) -> Result<Self, Self::Error> {
-        todo!()
+impl TryFrom<&[u8]> for Chunk {
+    type Error = ();
+    fn try_from(value: [u8; 4]) -> Result<Self, Self::Error> {
+        Ok(Chunk { bytes: value })
     }
 }
 
 impl Display for Chunk {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        todo!()
+        write!(
+            f,
+            "{}",
+            String::from_utf8(self.bytes.try_into().unwrap()).unwrap(),
+        )
     }
 }
-
 
 #[cfg(test)]
 mod tests {

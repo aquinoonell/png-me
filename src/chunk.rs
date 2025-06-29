@@ -16,7 +16,7 @@ impl Chunk {
 
 }
 
-impl TryFrom <[u8]> for Chunk {
+impl TryFrom <&[u8]> for Chunk {
   type Error = ();
     fn try_from(value: []) -> Result<Self, Self::Error> {
         todo!()

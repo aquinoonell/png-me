@@ -9,7 +9,7 @@ pub struct Chunk {
 
 impl Chunk {
     fn new(chunk_type: ChunkType, data: Vec<u8>) -> Chunk {
-        
+        chunk_type.into()
     }
 
     fn length(&self) -> u32{

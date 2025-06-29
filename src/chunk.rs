@@ -1,14 +1,19 @@
-use crate::Error;
 use crate::chunk_type::ChunkType;
+use crate::{Error, chunk_type};
 use std::fmt::{Display, Formatter};
 use std::str::FromStr;
 
 pub struct Chunk {
-    bytes: [u8; 4],
+    length: u32,
+    chunk_type: ChunkType,
+    data: Vec<u8>,
+    crc: u32,
 }
 
 impl Chunk {
-    fn new(chunk_type: ChunkType, data: Vec<u8>) -> Chunk {}
+    fn new(chunk_type: ChunkType, data: Vec<u8>) -> Chunk {
+        Chunk {}
+    }
 
     fn length(&self) -> u32 {
         self.length()

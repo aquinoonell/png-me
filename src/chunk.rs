@@ -1,5 +1,11 @@
-struct Chunk {
+use crate::Error;
+use std::fmt::{Display, Formatter};
 
+pub struct Chunk {
+    
+}
+
+impl Chunk {
     fn new(chunk_type: ChunkType, data: Vec<u8>) -> Chunk
     fn length(&self) -> u32
     fn chunk_type(&self) -> &ChunkType
@@ -7,11 +13,21 @@ struct Chunk {
     fn crc(&self) -> u32
     fn data_as_string(&self) -> Result<String>
     fn as_bytes(&self) -> Vec<u8>
+
 }
 
+impl TryFrom <[u8]> for Chunk {
+  type Error = ();
+    fn try_from(value: []) -> Result<Self, Self::Error> {
+        todo!()
+    }
+}
 
-
-
+impl Display for Chunk {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        todo!()
+    }
+}
 
 
 #[cfg(test)]

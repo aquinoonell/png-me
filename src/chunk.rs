@@ -1,8 +1,8 @@
-use crate::Error;
 use crate::chunk_type::ChunkType;
+use crate::Error;
 use crc::{CRC_32_ISO_HDLC, Crc};
 use std::fmt::{Display, Formatter};
-use std::str::FromStr;
+use std::io::Read;
 
 const CRC: Crc<u32> = Crc::<u32>::new(&CRC_32_ISO_HDLC);
 
@@ -15,12 +15,38 @@ pub struct Chunk {
 
 impl TryFrom<&[u8]> for Chunk {
     type Error = ();
-    fn try_from(value: [u8; 4]) -> Result<Self, Self::Error> {
-        let data_let = value.len();
+    fn try_from(value: &[u8]) -> Result<Self, Self::Error> {
+        let data_len = value.len();
         let mut iter = value.iter().clone();
-        let first4: [u8; 4] = iter.by_ref().take(4).collect::<Vec<u8>>().as_slice().try_into()?;
+        let first4: [u8; 4] = iter
+            .by_ref()
+            .take(4)
+            .collect::<Vec<u8>>()
+            .as_slice()
+            .try_into()?;
         let length = u32::from_be_bytes(first4);
 
+        let second4: Vec<u8> = iter.by_ref().take(4).collect();
+        let chunk_type =
+            ChunkType::try_from(TryInto::<[u8; 4]>::try_into(second4.as_slice()).unwrap())?;
+
+        let data_bytes: Vec<u8> = iter.by_ref().take(data_len - 12).collect();
+
+        let last_bytes: [u8; 4] = iter.take(4).collect::<Vec<u8>>().as_slice().try_into()?;
+        let crc = u32::from_be_bytes(last_bytes);
+
+        let correct_crc =
+            crc == CRC.checksum(Self::get_bytes_for_crc(&chunk_type, &data_bytes).as_slice());
+        if !correct_crc {
+            Err(Error::from("Invalid Chunk"))
+        } else {
+            Ok(Chunk {
+                data: data_bytes,
+                length,
+                crc,
+                chunk_type,
+            })
+        }
     }
 }
 
@@ -31,14 +57,27 @@ impl Display for Chunk {
 }
 
 impl Chunk {
-    fn new(chunk_type: ChunkType, data: Vec<u8>) -> Chunk {
-        Chunk {}
+    pub fn new(chunk_type: ChunkType, data: Vec<u8>) -> Chunk {
+        let crc_bytes = Self::get_bytes_for_crc(&chunk_type, &data);
+        Chunk {
+            length: data.len() as u32,
+            crc: CRC.checksum(&crc_bytes),
+            chunk_type,
+            data,
+        }
+    }
+
+    fn get_bytes_for_crc(chunk_type: &ChunkType, data: Vec<u8>) -> Vec<u8> {
+        let mut crc_bytes = vec![];
+        crc_bytes.extend(chunk_type.bytes());
+        crc_bytes.extend(data);
+        crc_bytes
     }
 
     fn length(&self) -> u32 {
         self.length
     }
-    fn chunk_type(&self) -> &ChunkType {
+    pub fn chunk_type(&self) -> &ChunkType {
         &self.chunk_type
     }
     fn data(&self) -> &[u8] {
@@ -47,10 +86,10 @@ impl Chunk {
     fn crc(&self) -> u32 {
         self.crc
     }
-    fn data_as_string(&self) -> Result<String, Error> {
+    pub fn data_as_string(&self) -> Result<String, Error> {
         Ok(String::from_utf8(self.data.clone()).unwrap())
     }
-    fn as_bytes(&self) -> Vec<u8> {
+    pub fn as_bytes(&self) -> Vec<u8> {
         let mut result_bytes = vec![];
         result_bytes.extend(self.length.to_be_bytes());
         result_bytes.extend(self.chunk_type.bytes());
@@ -59,7 +98,6 @@ impl Chunk {
         result_bytes
     }
 }
-
 
 #[cfg(test)]
 mod tests {

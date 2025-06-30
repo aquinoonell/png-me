@@ -4,34 +4,34 @@ use std::str::FromStr;
 
 #[derive(Debug, Eq, PartialEq)]
 pub struct ChunkType {
-    bytes: [u8; 4],
+    data: [u8; 4],
 }
 
 impl ChunkType {
-    fn bytes(&self) -> [u8; 4] {
-        self.bytes
-    }
-    fn is_valid(&self) -> bool {
-        self.is_reserved_bit_valid() && self.bytes.into_iter().all(|c| c.is_ascii())
+    pub fn bytes(&self) -> [u8; 4] {
+        self.data
     }
     fn is_critical(&self) -> bool {
-        self.bytes[0].is_ascii_uppercase()
+        self.data[0].is_ascii_uppercase()
     }
     fn is_public(&self) -> bool {
-        self.bytes[1].is_ascii_uppercase()
+        self.data[1].is_ascii_uppercase()
     }
     fn is_reserved_bit_valid(&self) -> bool {
-        self.bytes[2].is_ascii_uppercase()
+        self.data[2].is_ascii_uppercase()
     }
     fn is_safe_to_copy(&self) -> bool {
-        self.bytes[3].is_ascii_lowercase()
+        self.data[3].is_ascii_lowercase()
+    }
+    pub fn is_valid(&self) -> bool {
+        self.is_reserved_bit_valid() && self.data.into_iter().all(|c| c.is_ascii())
     }
 }
 
 impl TryFrom<[u8; 4]> for ChunkType {
     type Error = ();
     fn try_from(value: [u8; 4]) -> Result<Self, Self::Error> {
-        Ok(ChunkType { bytes: value })
+        Ok(ChunkType {data: value })
     }
 }
 
@@ -43,7 +43,7 @@ impl FromStr for ChunkType {
             Err(())
         } else {
             Ok(ChunkType {
-                bytes: s.as_bytes().try_into().unwrap(),
+                data: s.as_bytes().try_into().unwrap(),
             })
         };
     }
@@ -54,7 +54,7 @@ impl Display for ChunkType {
         write!(
             f,
             "{}",
-            String::from_utf8(self.bytes.try_into().unwrap()).unwrap(),
+            String::from_utf8(self.data.try_into().unwrap()).unwrap(),
         )
     }
 }

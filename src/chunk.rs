@@ -1,8 +1,7 @@
 use crate::chunk_type::ChunkType;
-use crate::Error;
 use crc::{CRC_32_ISO_HDLC, Crc};
+use crate::Error;
 use std::fmt::{Display, Formatter};
-use std::io::Read;
 
 const CRC: Crc<u32> = Crc::<u32>::new(&CRC_32_ISO_HDLC);
 
@@ -14,10 +13,11 @@ pub struct Chunk {
 }
 
 impl TryFrom<&[u8]> for Chunk {
-    type Error = ();
+    type Error = Error;
+
     fn try_from(value: &[u8]) -> Result<Self, Self::Error> {
         let data_len = value.len();
-        let mut iter = value.iter().clone();
+        let mut iter = value.iter().copied();
         let first4: [u8; 4] = iter
             .by_ref()
             .take(4)
@@ -28,9 +28,9 @@ impl TryFrom<&[u8]> for Chunk {
 
         let second4: Vec<u8> = iter.by_ref().take(4).collect();
         let chunk_type =
-            ChunkType::try_from(TryInto::<[u8; 4]>::try_into(second4.as_slice()).unwrap())?;
+            ChunkType::try_from(TryInto::<[u8; 4]>::try_into(second4.as_slice())?)?;
 
-        let data_bytes: Vec<u8> = iter.by_ref().take(data_len - 12).collect();
+        let data_bytes: Vec<u8> = iter.by_ref().take(length as usize).collect();
 
         let last_bytes: [u8; 4] = iter.take(4).collect::<Vec<u8>>().as_slice().try_into()?;
         let crc = u32::from_be_bytes(last_bytes);
@@ -67,7 +67,7 @@ impl Chunk {
         }
     }
 
-    fn get_bytes_for_crc(chunk_type: &ChunkType, data: Vec<u8>) -> Vec<u8> {
+    fn get_bytes_for_crc(chunk_type: &ChunkType, data: &Vec<u8>) -> Vec<u8> {
         let mut crc_bytes = vec![];
         crc_bytes.extend(chunk_type.bytes());
         crc_bytes.extend(data);

@@ -13,6 +13,23 @@ pub struct Chunk {
     crc: u32,
 }
 
+impl TryFrom<&[u8]> for Chunk {
+    type Error = ();
+    fn try_from(value: [u8; 4]) -> Result<Self, Self::Error> {
+        let data_let = value.len();
+        let mut iter = value.iter().clone();
+        let first4: [u8; 4] = iter.by_ref().take(4).collect::<Vec<u8>>().as_slice().try_into()?;
+        let length = u32::from_be_bytes(first4);
+
+    }
+}
+
+impl Display for Chunk {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.data_as_string().unwrap())
+    }
+}
+
 impl Chunk {
     fn new(chunk_type: ChunkType, data: Vec<u8>) -> Chunk {
         Chunk {}
@@ -30,26 +47,19 @@ impl Chunk {
     fn crc(&self) -> u32 {
         self.crc
     }
-    fn data_as_string(&self) -> Result<String> {
+    fn data_as_string(&self) -> Result<String, Error> {
         Ok(String::from_utf8(self.data.clone()).unwrap())
     }
     fn as_bytes(&self) -> Vec<u8> {
-        self.as_bytes()
+        let mut result_bytes = vec![];
+        result_bytes.extend(self.length.to_be_bytes());
+        result_bytes.extend(self.chunk_type.bytes());
+        result_bytes.extend(&self.data);
+        result_bytes.extend(self.crc.to_be_bytes());
+        result_bytes
     }
 }
 
-impl TryFrom<&[u8]> for Chunk {
-    type Error = ();
-    fn try_from(value: [u8; 4]) -> Result<Self, Self::Error> {
-        Ok(Chunk { bytes: value })
-    }
-}
-
-impl Display for Chunk {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.data_as_string().unwrap())
-    }
-}
 
 #[cfg(test)]
 mod tests {

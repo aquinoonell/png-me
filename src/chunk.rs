@@ -1,7 +1,10 @@
+use crate::Error;
 use crate::chunk_type::ChunkType;
-use crate::{Error, chunk_type};
+use crc::{CRC_32_ISO_HDLC, Crc};
 use std::fmt::{Display, Formatter};
 use std::str::FromStr;
+
+const CRC: Crc<u32> = Crc::<u32>::new(&CRC_32_ISO_HDLC);
 
 pub struct Chunk {
     length: u32,
@@ -16,19 +19,19 @@ impl Chunk {
     }
 
     fn length(&self) -> u32 {
-        self.length()
+        self.length
     }
     fn chunk_type(&self) -> &ChunkType {
-        self.chunk_type()
+        &self.chunk_type
     }
     fn data(&self) -> &[u8] {
-        self.data()
+        &[]
     }
     fn crc(&self) -> u32 {
-        self.crc()
+        self.crc
     }
     fn data_as_string(&self) -> Result<String> {
-        self.data_as_string()
+        Ok(String::from_utf8(self.data.clone()).unwrap())
     }
     fn as_bytes(&self) -> Vec<u8> {
         self.as_bytes()
@@ -44,11 +47,7 @@ impl TryFrom<&[u8]> for Chunk {
 
 impl Display for Chunk {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(
-            f,
-            "{}",
-            String::from_utf8(self.bytes.try_into().unwrap()).unwrap(),
-        )
+        write!(f, "{}", self.data_as_string().unwrap())
     }
 }
 

@@ -27,8 +27,9 @@ impl TryFrom<&[u8]> for Chunk {
         let length = u32::from_be_bytes(first4);
 
         let second4: Vec<u8> = iter.by_ref().take(4).collect();
+        if second4.len() != 4 {return Err(Error::from("Failed"));}
         let chunk_type =
-            ChunkType::try_from(TryInto::<[u8; 4]>::try_into(second4.as_slice())?)?;
+            ChunkType::try_from(second4.as_slice())?;
 
         let data_bytes: Vec<u8> = iter.by_ref().take(length as usize).collect();
 
@@ -80,7 +81,7 @@ impl Chunk {
     pub fn chunk_type(&self) -> &ChunkType {
         &self.chunk_type
     }
-    fn data(&self) -> &[u8] {
+    pub fn data(&self) -> &[u8] {
         &[]
     }
     fn crc(&self) -> u32 {

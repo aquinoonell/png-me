@@ -1,20 +1,87 @@
+use crate::Error;
+use crate::chunk:: Chunk;
+use std::fmt::{Display, Formatter};
 
-    fn from_chunks(chunks: Vec<Chunk>) -> Png
-    fn append_chunk(&mut self, chunk: Chunk)
-    fn remove_first_chunk(&mut self, chunk_type: &str) -> Result<Chunk>
-    fn header(&self) -> &[u8; 8]
-    fn chunks(&self) -> &[Chunk]
-    fn chunk_by_type(&self, chunk_type: &str) -> Option<&Chunk>
-    fn as_bytes(&self) -> Vec<u8>
+pub struct Png {
+    chunks: Vec<chunk>,
+}
 
+impl TryFrom<&[u8]> for Png {
+    type Error = Error;
+    fn try_from(value: &[u8]) -> Result<Self, Self::Error> {
+        let mut chunk = vec![];
+        let mut iter = value.iter();
+
+        let header_bytes: Vec<u8> = iter.by_ref().take(8).copied().collect();
+        if Self::STANDARD_HEADER != header_bytes.as_slice() {
+            return Err(Error::from("Invalid Header"));
+        }
+
+        while iter.len() >= 12 {
+            let first4: [u8; 4] = iter.clone().take(4).copied().collect()::<Vec<u8>>().as_slice().try_into()?;
+            let lenght = u32::from_be_bytes(first4);
+
+            let chunk = Chunk::try_from(iter.by_ref().take(lenght as usize + 12).copied().collect()::<Vec<u8>>().as_slice(),)?;
+          chunks.push(chunk); 
+        }
+        Ok(Png::from_chunks(chunks))
+    }
+}
+
+impl Display for Png {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{:?}", self.as_bytes())
+    }
+}
+
+impl Png {
+    pub const STANDARD_HEADER: [u8; 8] = [137, 80, 78, 71, 13, 10, 26, 10];
+
+    fn from_chunks(chunks: Vec<Chunk>) -> Png {
+        Png { chunks }
+    }
+    fn append_chunk(&mut self, chunk: Chunk) {
+        self.chunks.push(chunk);
+    }
+    fn remove_first_chunk(&mut self, chunk_type: &str) -> Result<Chunk> {
+        let searched = self
+            .chunks
+            .iter()
+            .position(|c| c.chunk_type().to_string() == chunk_type);
+        if let Some(position) = searched {
+            Ok(self.chunks.remove(position))
+        } else {
+            Err(Error::from("Chunk Not Found"))
+        }
+    }
+    fn header(&self) -> &[u8; 8] {
+        &Self::STANDARD_HEADER
+    }
+    pub fn chunks(&self) -> &[Chunk] {
+        self.chunks.as_slice()
+    }
+    fn chunk_by_type(&self, chunk_type: &str) -> Option<&Chunk> {
+        self.chunks
+            .iter()
+            .find(|c| c.chunk_type().to_string() == chunk_type)
+    }
+    fn as_bytes(&self) -> Vec<u8> {
+        let mut result_bytes = vec![];
+        result_bytes.extend(self.header());
+        for chunk in &self.chunks {
+            result_bytes.extend(chunk.as_bytes());
+        }
+        result_bytes
+    }
+}
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::chunk_type::ChunkType;
     use crate::chunk::Chunk;
-    use std::str::FromStr;
+    use crate::chunk_type::ChunkType;
     use std::convert::TryFrom;
+    use std::str::FromStr;
 
     fn testing_chunks() -> Vec<Chunk> {
         vec![
@@ -104,7 +171,6 @@ mod tests {
         assert!(png.is_err());
     }
 
-
     #[test]
     fn test_list_chunks() {
         let png = testing_png();
@@ -118,7 +184,6 @@ mod tests {
         let chunk = png.chunk_by_type("FrSt").unwrap();
         assert_eq!(&chunk.chunk_type().to_string(), "FrSt");
         assert_eq!(&chunk.data_as_string().unwrap(), "I am the first chunk");
-
     }
 
     #[test]
@@ -418,4 +483,3 @@ mod tests {
         160, 0, 0, 0, 0, 73, 69, 78, 68, 174, 66, 96, 130,
     ];
 }
-

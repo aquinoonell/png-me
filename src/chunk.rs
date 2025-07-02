@@ -16,7 +16,7 @@ impl TryFrom<&[u8]> for Chunk {
     type Error = Error;
 
     fn try_from(value: &[u8]) -> Result<Self, Self::Error> {
-        let data_len = value.len();
+        let _data_len = value.len();
         let mut iter = value.iter().copied();
         let first4: [u8; 4] = iter
             .by_ref()

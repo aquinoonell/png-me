@@ -1,5 +1,5 @@
 use crate::Error;
-use crate::chunk:: Chunk;
+use crate::chunk::Chunk;
 use std::fmt::{Display, Formatter};
 
 pub struct Png {
@@ -8,8 +8,9 @@ pub struct Png {
 
 impl TryFrom<&[u8]> for Png {
     type Error = Error;
+
     fn try_from(value: &[u8]) -> Result<Self, Self::Error> {
-        let mut chunk = vec![];
+        let mut chunks = vec![];
         let mut iter = value.iter();
 
         let header_bytes: Vec<u8> = iter.by_ref().take(8).copied().collect();
@@ -18,10 +19,16 @@ impl TryFrom<&[u8]> for Png {
         }
 
         while iter.len() >= 12 {
-            let first4: [u8; 4] = iter.clone().take(4).copied().collect()::<Vec<u8>>().as_slice().try_into()?;
+            let first4: [u8; 4] = iter.clone().take(4).copied().collect::<Vec<u8>>().as_slice().try_into()?;
             let lenght = u32::from_be_bytes(first4);
 
-            let chunk = Chunk::try_from(iter.by_ref().take(lenght as usize + 12).copied().collect()::<Vec<u8>>().as_slice(),)?;
+            let chunk = Chunk::try_from(
+                iter.by_ref()
+                .take(lenght as usize + 12)
+                .copied()
+                .collect::<Vec<u8>>()
+                .as_slice(),
+            )?;
           chunks.push(chunk); 
         }
         Ok(Png::from_chunks(chunks))
@@ -40,10 +47,10 @@ impl Png {
     fn from_chunks(chunks: Vec<Chunk>) -> Png {
         Png { chunks }
     }
-    fn append_chunk(&mut self, chunk: Chunk) {
+    pub fn append_chunk(&mut self, chunk: Chunk) {
         self.chunks.push(chunk);
     }
-    fn remove_first_chunk(&mut self, chunk_type: &str) -> Result<Chunk, E> {
+    pub fn remove_first_chunk(&mut self, chunk_type: &str) -> Result<Chunk, Error> {
         let searched = self
             .chunks
             .iter()
@@ -60,7 +67,7 @@ impl Png {
     pub fn chunks(&self) -> &[Chunk] {
         self.chunks.as_slice()
     }
-    fn chunk_by_type(&self, chunk_type: &str) -> Option<&Chunk> {
+    pub fn chunk_by_type(&self, chunk_type: &str) -> Option<&Chunk> {
         self.chunks
             .iter()
             .find(|c| c.chunk_type().to_string() == chunk_type)
@@ -96,7 +103,7 @@ mod tests {
         Png::from_chunks(chunks)
     }
 
-    fn chunk_from_strings(chunk_type: &str, data: &str) -> Result<Chunk> {
+    fn chunk_from_strings(chunk_type: &str, data: &str) -> Result<Chunk, Error> {
         use std::str::FromStr;
 
         let chunk_type = ChunkType::from_str(chunk_type)?;

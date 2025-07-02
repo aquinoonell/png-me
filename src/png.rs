@@ -72,7 +72,7 @@ impl Png {
             .iter()
             .find(|c| c.chunk_type().to_string() == chunk_type)
     }
-    fn as_bytes(&self) -> Vec<u8> {
+    pub fn as_bytes(&self) -> Vec<u8> {
         let mut result_bytes = vec![];
         result_bytes.extend(self.header());
         for chunk in &self.chunks {

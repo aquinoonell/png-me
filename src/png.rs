@@ -3,7 +3,7 @@ use crate::chunk:: Chunk;
 use std::fmt::{Display, Formatter};
 
 pub struct Png {
-    chunks: Vec<chunk>,
+    chunks: Vec<Chunk>,
 }
 
 impl TryFrom<&[u8]> for Png {
@@ -43,7 +43,7 @@ impl Png {
     fn append_chunk(&mut self, chunk: Chunk) {
         self.chunks.push(chunk);
     }
-    fn remove_first_chunk(&mut self, chunk_type: &str) -> Result<Chunk> {
+    fn remove_first_chunk(&mut self, chunk_type: &str) -> Result<Chunk, E> {
         let searched = self
             .chunks
             .iter()

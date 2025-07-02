@@ -1,4 +1,3 @@
-use crate::Error;
 use std::fmt::{Display, Formatter};
 use std::str::FromStr;
 

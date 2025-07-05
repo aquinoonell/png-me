@@ -1,3 +1,8 @@
+use clap::Parser;
+use clap::Args;
+use crate::Args::Commands::{Decode, Encode, Print, Remove};
+use crate::commands::{decode, encode, print, remove};
+
 mod args;
 mod chunk;
 mod chunk_type;
@@ -8,5 +13,22 @@ pub type Error = Box<dyn std::error::Error>;
 pub type Result<T> = std::result::Result<T, Error>;
 
 fn main() -> Result<()> {
-    todo!()
+    {
+        let args = Args::parse();
+        match &args.command {
+            Encode {path, chunk_type, message} => {
+                encode(path, chunk_type, message)?;
+            },
+            Decode {path, chunk_type} => {
+                decode(path, chunk_type)?;
+            },
+            Remove {path, chunk_type} => {
+                remove(path, chunk_type);
+            },
+            Print {path} => {
+                print(path);
+            }
+        }
+    }
+    Ok(())
 }

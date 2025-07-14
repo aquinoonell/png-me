@@ -6,6 +6,7 @@ pub struct ChunkType {
     data: [u8; 4],
 }
 
+#[allow(dead_code)]
 impl ChunkType {
     pub fn bytes(&self) -> [u8; 4] {
         self.data

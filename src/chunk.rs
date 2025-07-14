@@ -58,6 +58,7 @@ impl Display for Chunk {
     }
 }
 
+#[allow(dead_code)]
 impl Chunk {
     pub fn new(chunk_type: ChunkType, data: Vec<u8>) -> Chunk {
         let crc_bytes = Self::get_bytes_for_crc(&chunk_type, &data);

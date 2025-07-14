@@ -6,7 +6,7 @@ use clap::{Parser, Subcommand};
 
 pub struct Args {
     #[command(subcommand)]
-    pub command: Commands,
+    pub command: Commands
 }
 
 #[derive(Subcommand)]

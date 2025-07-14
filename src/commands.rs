@@ -34,7 +34,7 @@ pub fn encode(path: &str, chunk_type: &str, message: &str) -> std::io::Result<bo
     png.append_chunk(i_end);
 
     let write_path = std::path::Path::new(path);
-    fs::write(write_path, png.as_bytes());
+    let _ = fs::write(write_path, png.as_bytes());
     println!("Message Encoded");
     Ok(true)
 }

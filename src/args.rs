@@ -26,5 +26,5 @@ pub enum Commands {
     },
     Print {
         path: String,
-    },
+    }
 }

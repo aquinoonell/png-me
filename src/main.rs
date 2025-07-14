@@ -23,7 +23,7 @@ fn main() -> Result<()> {
                 decode(path, chunk_type)?;
             },
             Remove {path, chunk_type} => {
-                let _ = remove(path, chunk_type);
+                remove(path, chunk_type)?;
             },
             Print {path} => {
                 print(path);

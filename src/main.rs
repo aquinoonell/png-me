@@ -1,6 +1,6 @@
 use clap::Parser;
 use clap::Args;
-use crate::Args::commands::{Decode, Encode, Print, Remove};
+use crate::args::Commands::{Decode, Encode, Print, Remove};
 use crate::commands::{decode, encode, print, remove};
 
 mod args;
